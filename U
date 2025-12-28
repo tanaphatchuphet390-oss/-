@@ -1,0 +1,98 @@
+-- [[ FINAL CUSTOM JUMPSCARE SCRIPT - NO EXTRA EYES ]] --
+
+local coreGui = game:GetService("CoreGui")
+local sg = Instance.new("ScreenGui")
+sg.Name = "FinalScaryScript_NoEyes"
+sg.Parent = coreGui
+sg.IgnoreGuiInset = true
+
+-- 1. พื้นหลังสีดำสนิท
+local bgFrame = Instance.new("Frame")
+bgFrame.Parent = sg
+bgFrame.Size = UDim2.new(1, 0, 1, 0)
+bgFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+bgFrame.BorderSizePixel = 0
+
+-- 2. สร้างปุ่มกด (ตัวหนังสือขาวในปุ่มแดง)
+local mainButton = Instance.new("TextButton")
+mainButton.Parent = bgFrame
+mainButton.Size = UDim2.new(0, 280, 0, 90)
+mainButton.Position = UDim2.new(0.5, -140, 0.5, -45)
+mainButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0) -- ปุ่มสีแดง
+mainButton.Font = Enum.Font.GothamBold
+mainButton.Text = "CLICK ME"
+mainButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- ตัวหนังสือสีขาว
+mainButton.TextSize = 35
+local uiCorner = Instance.new("UICorner", mainButton)
+uiCorner.CornerRadius = UDim.new(0, 15)
+
+local clickCount = 0
+
+-- 3. ฟังก์ชัน Jumpscare ถาวร
+local function TriggerPermanentJumpscare()
+    mainButton:Destroy() 
+    
+    -- Overlay กระพริบสีเลือด
+    local bloodOverlay = Instance.new("Frame", bgFrame)
+    bloodOverlay.Size = UDim2.new(1, 0, 1, 0)
+    bloodOverlay.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    bloodOverlay.BackgroundTransparency = 1
+    bloodOverlay.ZIndex = 15
+    bloodOverlay.BorderSizePixel = 0
+
+    -- แสดงรูปภาพหลัก ID: 11195697443
+    local scaryImage = Instance.new("ImageLabel", bgFrame)
+    scaryImage.Size = UDim2.new(1.3, 0, 1.3, 0)
+    scaryImage.Position = UDim2.new(-0.15, 0, -0.15, 0)
+    scaryImage.Image = "rbxassetid://11195697443" 
+    scaryImage.BackgroundTransparency = 1
+    scaryImage.ZIndex = 10
+    
+    -- เล่นเสียง ID: 79399386956664 แบบวนลูป
+    local sound = Instance.new("Sound", workspace)
+    sound.SoundId = "rbxassetid://79399386956664"
+    sound.Volume = 10
+    sound.Looped = true 
+    sound:Play()
+    
+    -- ล็อกตัวผู้เล่นถาวร
+    local lp = game.Players.LocalPlayer
+    task.spawn(function()
+        while sg.Parent do
+            if lp.Character and lp.Character:FindFirstChild("Humanoid") then
+                lp.Character.Humanoid.WalkSpeed = 0
+                lp.Character.Humanoid.JumpPower = 0
+            end
+            task.wait(0.1)
+        end
+    end)
+
+    -- ระบบสั่นหน้าจอและกระพริบสีเลือดแบบวนลูป
+    task.spawn(function()
+        local count = 0
+        while sg.Parent do
+            count = count + 1
+            local xOffset = math.random(-25, 25)
+            local yOffset = math.random(-25, 25)
+            scaryImage.Position = UDim2.new(-0.15, xOffset, -0.15, yOffset)
+            
+            if count % 2 == 0 then
+                bloodOverlay.BackgroundTransparency = 0.4
+            else
+                bloodOverlay.BackgroundTransparency = 1
+            end
+            task.wait(0.01)
+        end
+    end)
+end
+
+-- 4. ระบบการคลิก
+mainButton.MouseButton1Click:Connect(function()
+    clickCount = clickCount + 1
+    if clickCount == 1 then
+        -- เปลี่ยนข้อความเป็น Are you sure? (ตัวหนังสือขาว ในปุ่มแดง)
+        mainButton.Text = "Are you sure?"
+    elseif clickCount == 2 then
+        TriggerPermanentJumpscare()
+    end
+end)
