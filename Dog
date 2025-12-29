@@ -1,0 +1,488 @@
+-- [[ DOG CLICKER: FULL ENGLISH CODE EDITION ]] --
+local player = game.Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+
+-- Remove old UI if exists
+if CoreGui:FindFirstChild("DogClickerPro") then CoreGui.DogClickerPro:Destroy() end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DogClickerPro"
+ScreenGui.Parent = CoreGui
+
+-- --- Data Persistence System ---
+local ClickCount = 0
+local fileName = "DogClicker_EN_Data.txt"
+
+local function saveStats()
+    if writefile then writefile(fileName, tostring(ClickCount)) end
+    player:SetAttribute("DogClicks", ClickCount)
+end
+
+local function loadStats()
+    if isfile and isfile(fileName) then ClickCount = tonumber(readfile(fileName)) or 0 end
+    player:SetAttribute("UsingDogScript", true)
+    player:SetAttribute("DogClicks", ClickCount)
+end
+loadStats()
+
+-- --- UI Window Factory ---
+local function createWindow(titleText)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 280, 0, 350)
+    frame.Position = UDim2.new(0.5, -140, 0.5, -175)
+    frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    frame.Visible = false
+    frame.Active = true
+    frame.Draggable = true
+    frame.Parent = ScreenGui
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 20)
+    Instance.new("UIStroke", frame).Color = Color3.fromRGB(240, 240, 240)
+
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -35, 0, 10)
+    closeBtn.Text = "×"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+    closeBtn.TextSize = 25
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Parent = frame
+    closeBtn.MouseButton1Click:Connect(function() frame.Visible = false end)
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 45)
+    title.Text = titleText
+    title.TextColor3 = Color3.fromRGB(100, 100, 100)
+    title.Font = "GothamBold"
+    title.TextSize = 16
+    title.BackgroundTransparency = 1
+    title.Parent = frame
+    return frame
+end
+
+-- --- Sidebar Menu ---
+local SideBar = Instance.new("Frame")
+SideBar.Size = UDim2.new(0, 60, 0, 250)
+SideBar.Position = UDim2.new(0, 15, 0.5, -125)
+SideBar.BackgroundTransparency = 1
+SideBar.Parent = ScreenGui
+Instance.new("UIListLayout", SideBar).Padding = UDim.new(0, 10)
+
+local function createBtn(text, parent, color)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 50, 0, 50)
+    btn.Text = text
+    btn.TextSize = 22
+    btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextColor3 = color
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 15)
+    Instance.new("UIStroke", btn).Color = Color3.fromRGB(240, 240, 240)
+    btn.Parent = parent
+    return btn
+end
+
+local ToggleBtn = createBtn("🐶", SideBar, Color3.fromRGB(180, 120, 80))
+local RankBtn = createBtn("🏆", SideBar, Color3.fromRGB(100, 150, 255))
+local ChatBtn = createBtn("💬", SideBar, Color3.fromRGB(80, 200, 120))
+local MusicBtn = createBtn("🎵", SideBar, Color3.fromRGB(200, 100, 255))
+
+-- --- Windows Initialization ---
+local MainFrame = createWindow("DOG CLICKER")
+MainFrame.Visible = true
+local RankFrame = createWindow("LEADERBOARD")
+local ChatFrame = createWindow("GLOBAL CHAT")
+local MusicFrame = createWindow("MUSIC PLAYER")
+
+-- --- 1. Clicker System ---
+local DogButton = Instance.new("ImageButton")
+DogButton.Size = UDim2.new(0, 140, 0, 140)
+DogButton.Position = UDim2.new(0.5, -70, 0.15, 0)
+DogButton.Image = "rbxassetid://10316507030"
+DogButton.BackgroundTransparency = 1
+DogButton.Parent = MainFrame
+
+local CountLabel = Instance.new("TextLabel")
+CountLabel.Size = UDim2.new(1, 0, 0, 40)
+CountLabel.Position = UDim2.new(0, 0, 0.6, 0)
+CountLabel.Text = ClickCount
+CountLabel.TextColor3 = Color3.fromRGB(180, 120, 80)
+CountLabel.Font = "GothamBlack"
+CountLabel.TextSize = 35
+CountLabel.BackgroundTransparency = 1
+CountLabel.Parent = MainFrame
+
+local DogSound = Instance.new("Sound", player.Character:WaitForChild("HumanoidRootPart"))
+DogSound.SoundId = "rbxassetid://12222058"
+DogSound.Volume = 1
+
+DogButton.MouseButton1Click:Connect(function()
+    ClickCount = ClickCount + 1
+    CountLabel.Text = ClickCount
+    saveStats()
+    DogSound:Play()
+    DogButton:TweenSize(UDim2.new(0, 150, 0, 150), "Out", "Back", 0.05, true)
+    task.wait(0.05)
+    DogButton:TweenSize(UDim2.new(0, 140, 0, 140), "Out", "Back", 0.05, true)
+end)
+
+-- --- 2. Manual Music System ---
+local BgMusic = Instance.new("Sound", ScreenGui)
+BgMusic.Looped = true
+
+local MusicInput = Instance.new("TextBox")
+MusicInput.Size = UDim2.new(0.8, 0, 0, 45)
+MusicInput.Position = UDim2.new(0.1, 0, 0.3, 0)
+MusicInput.PlaceholderText = "ENTER SOUND ID..."
+MusicInput.Text = ""
+MusicInput.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+MusicInput.Parent = MusicFrame
+Instance.new("UICorner", MusicInput)
+
+local PlayBtn = Instance.new("TextButton")
+PlayBtn.Size = UDim2.new(0.35, 0, 0, 40)
+PlayBtn.Position = UDim2.new(0.1, 0, 0.5, 0)
+PlayBtn.Text = "PLAY"
+PlayBtn.BackgroundColor3 = Color3.fromRGB(200, 255, 200)
+PlayBtn.Parent = MusicFrame
+Instance.new("UICorner", PlayBtn)
+
+local StopBtn = Instance.new("TextButton")
+StopBtn.Size = UDim2.new(0.35, 0, 0, 40)
+StopBtn.Position = UDim2.new(0.55, 0, 0.5, 0)
+StopBtn.Text = "STOP"
+StopBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 200)
+StopBtn.Parent = MusicFrame
+Instance.new("UICorner", StopBtn)
+
+PlayBtn.MouseButton1Click:Connect(function() 
+    BgMusic.SoundId = "rbxassetid://"..MusicInput.Text
+    BgMusic:Play() 
+end)
+
+StopBtn.MouseButton1Click:Connect(function() 
+    BgMusic:Stop() 
+end)
+
+-- --- 3. Global Chat System ---
+local ChatScroll = Instance.new("ScrollingFrame")
+ChatScroll.Size = UDim2.new(1, -20, 1, -100)
+ChatScroll.Position = UDim2.new(0, 10, 0, 50)
+ChatScroll.BackgroundTransparency = 1
+ChatScroll.Parent = ChatFrame
+Instance.new("UIListLayout", ChatScroll).VerticalAlignment = "Bottom"
+
+local ChatInput = Instance.new("TextBox")
+ChatInput.Size = UDim2.new(1, -20, 0, 35)
+ChatInput.Position = UDim2.new(0, 10, 1, -45)
+ChatInput.PlaceholderText = "Type message here..."
+ChatInput.Text = ""
+ChatInput.Parent = ChatFrame
+Instance.new("UICorner", ChatInput)
+
+local function addMsg(name, msg)
+    local msgL = Instance.new("TextLabel")
+    msgL.Size = UDim2.new(1, 0, 0, 20)
+    msgL.Text = "["..name.."]: "..msg
+    msgL.TextColor3 = Color3.fromRGB(100, 100, 100)
+    msgL.Font = "Gotham"
+    msgL.TextSize = 14
+    msgL.TextXAlignment = "Left"
+    msgL.BackgroundTransparency = 1
+    msgL.Parent = ChatScroll
+    ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.AbsoluteCanvasSize.Y)
+end
+
+ChatInput.FocusLost:Connect(function(enter)
+    if enter and ChatInput.Text ~= "" then
+        player:SetAttribute("DogChatMsg", ChatInput.Text)
+        ChatInput.Text = ""
+    end
+end)
+
+for _, p in pairs(Players:GetPlayers()) do
+    p:GetAttributeChangedSignal("DogChatMsg"):Connect(function()
+        addMsg(p.DisplayName, p:GetAttribute("DogChatMsg"))
+    end)
+end
+
+-- --- 4. Leaderboard System ---
+local RankScroll = Instance.new("ScrollingFrame")
+RankScroll.Size = UDim2.new(1, -20, 1, -60)
+RankScroll.Position = UDim2.new(0, 10, 0, 50)
+RankScroll.BackgroundTransparency = 1
+RankScroll.Parent = RankFrame
+Instance.new("UIListLayout", RankScroll).Padding = UDim.new(0, 8)
+
+local function updateRank()
+    for _, v in pairs(RankScroll:GetChildren()) do if v:IsA("Frame") then v:Destroy() end end
+    local users = {}
+    for _, p in pairs(Players:GetPlayers()) do
+        if p:GetAttribute("UsingDogScript") then
+            table.insert(users, {Name = p.DisplayName, Score = p:GetAttribute("DogClicks") or 0, Id = p.UserId})
+        end
+    end
+    table.sort(users, function(a, b) return a.Score > b.Score end)
+    for i, data in ipairs(users) do
+        if i > 10 then break end
+        local item = Instance.new("Frame")
+        item.Size = UDim2.new(1, -5, 0, 45)
+        item.BackgroundColor3 = Color3.fromRGB(252, 252, 252)
+        item.Parent = RankScroll
+        Instance.new("UICorner", item)
+        
+        local img = Instance.new("ImageLabel")
+        img.Size = UDim2.new(0, 35, 0, 35)
+        img.Position = UDim2.new(0, 5, 0.5, -17.5)
+        img.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..data.Id.."&width=420&height=420&format=png"
+        img.BackgroundTransparency = 1
+        img.Parent = item
+        Instance.new("UICorner", img).CornerRadius = UDim.new(1,0)
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -50, 1, 0)
+        label.Position = UDim2.new(0, 45, 0, 0)
+        label.Text = i..". "..data.Name.." ("..data.Score..") 🐶"
+        label.TextColor3 = Color3.fromRGB(100, 100, 100)
+        label.TextXAlignment = "Left"
+        label.BackgroundTransparency = 1
+        label.Font = "GothamBold"
+        label.Parent = item
+    end
+end
+
+task.spawn(function()
+    while wait(2) do
+        if RankFrame.Visible then updateRank() end
+    end
+end)
+
+-- --- Navigation Logic ---
+local function closeAll()
+    MainFrame.Visible = false
+    RankFrame.Visible = false
+    ChatFrame.Visible = false
+    MusicFrame.Visible = false
+end
+
+ToggleBtn.MouseButton1Click:Connect(function() closeAll(); MainFrame.Visible = true end)
+RankBtn.MouseButton1Click:Connect(function() closeAll(); RankFrame.Visible = true; updateRank() end)
+ChatBtn.MouseButton1Click:Connect(function() closeAll(); ChatFrame.Visible = true end)
+MusicBtn.MouseButton1Click:Connect(function() closeAll(); MusicFrame.Visible = true end)
+title.Size = UDim2.new(1, 0, 0, 45)
+    title.Text = titleText
+    title.TextColor3 = Color3.fromRGB(100, 100, 100)
+    title.Font = "GothamBold"
+    title.TextSize = 16
+    title.BackgroundTransparency = 1
+    title.Parent = frame
+    return frame
+end
+
+-- --- Sidebar Menu ---
+local SideBar = Instance.new("Frame")
+SideBar.Size = UDim2.new(0, 60, 0, 250)
+SideBar.Position = UDim2.new(0, 15, 0.5, -125)
+SideBar.BackgroundTransparency = 1
+SideBar.Parent = ScreenGui
+Instance.new("UIListLayout", SideBar).Padding = UDim.new(0, 10)
+
+local function createBtn(text, parent, color)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 50, 0, 50)
+    btn.Text = text
+    btn.TextSize = 22
+    btn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextColor3 = color
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 15)
+    Instance.new("UIStroke", btn).Color = Color3.fromRGB(240, 240, 240)
+    btn.Parent = parent
+    return btn
+end
+
+local ToggleBtn = createBtn("🐶", SideBar, Color3.fromRGB(180, 120, 80))
+local RankBtn = createBtn("🏆", SideBar, Color3.fromRGB(100, 150, 255))
+local ChatBtn = createBtn("💬", SideBar, Color3.fromRGB(80, 200, 120))
+local MusicBtn = createBtn("🎵", SideBar, Color3.fromRGB(200, 100, 255))
+
+-- --- Windows Initialization ---
+local MainFrame = createWindow("DOG CLICKER")
+MainFrame.Visible = true
+local RankFrame = createWindow("LEADERBOARD")
+local ChatFrame = createWindow("GLOBAL CHAT")
+local MusicFrame = createWindow("MUSIC PLAYER")
+
+-- --- 1. Clicker System ---
+local DogButton = Instance.new("ImageButton")
+DogButton.Size = UDim2.new(0, 140, 0, 140)
+DogButton.Position = UDim2.new(0.5, -70, 0.15, 0)
+DogButton.Image = "rbxassetid://10316507030"
+DogButton.BackgroundTransparency = 1
+DogButton.Parent = MainFrame
+
+local CountLabel = Instance.new("TextLabel")
+CountLabel.Size = UDim2.new(1, 0, 0, 40)
+CountLabel.Position = UDim2.new(0, 0, 0.6, 0)
+CountLabel.Text = ClickCount
+CountLabel.TextColor3 = Color3.fromRGB(180, 120, 80)
+CountLabel.Font = "GothamBlack"
+CountLabel.TextSize = 35
+CountLabel.BackgroundTransparency = 1
+CountLabel.Parent = MainFrame
+
+local DogSound = Instance.new("Sound", player.Character:WaitForChild("HumanoidRootPart"))
+DogSound.SoundId = "rbxassetid://12222058"
+DogSound.Volume = 1
+
+DogButton.MouseButton1Click:Connect(function()
+    ClickCount = ClickCount + 1
+    CountLabel.Text = ClickCount
+    saveStats()
+    DogSound:Play()
+    DogButton:TweenSize(UDim2.new(0, 150, 0, 150), "Out", "Back", 0.05, true)
+    task.wait(0.05)
+    DogButton:TweenSize(UDim2.new(0, 140, 0, 140), "Out", "Back", 0.05, true)
+end)
+
+-- --- 2. Manual Music System ---
+local BgMusic = Instance.new("Sound", ScreenGui)
+BgMusic.Looped = true
+
+local MusicInput = Instance.new("TextBox")
+MusicInput.Size = UDim2.new(0.8, 0, 0, 45)
+MusicInput.Position = UDim2.new(0.1, 0, 0.3, 0)
+MusicInput.PlaceholderText = "ENTER SOUND ID..."
+MusicInput.Text = ""
+MusicInput.BackgroundColor3 = Color3.fromRGB(245, 245, 245)
+MusicInput.Parent = MusicFrame
+Instance.new("UICorner", MusicInput)
+
+local PlayBtn = Instance.new("TextButton")
+PlayBtn.Size = UDim2.new(0.35, 0, 0, 40)
+PlayBtn.Position = UDim2.new(0.1, 0, 0.5, 0)
+PlayBtn.Text = "PLAY"
+PlayBtn.BackgroundColor3 = Color3.fromRGB(200, 255, 200)
+PlayBtn.Parent = MusicFrame
+Instance.new("UICorner", PlayBtn)
+
+local StopBtn = Instance.new("TextButton")
+StopBtn.Size = UDim2.new(0.35, 0, 0, 40)
+StopBtn.Position = UDim2.new(0.55, 0, 0.5, 0)
+StopBtn.Text = "STOP"
+StopBtn.BackgroundColor3 = Color3.fromRGB(255, 200, 200)
+StopBtn.Parent = MusicFrame
+Instance.new("UICorner", StopBtn)
+
+PlayBtn.MouseButton1Click:Connect(function() 
+    BgMusic.SoundId = "rbxassetid://"..MusicInput.Text
+    BgMusic:Play() 
+end)
+
+StopBtn.MouseButton1Click:Connect(function() 
+    BgMusic:Stop() 
+end)
+
+-- --- 3. Global Chat System ---
+local ChatScroll = Instance.new("ScrollingFrame")
+ChatScroll.Size = UDim2.new(1, -20, 1, -100)
+ChatScroll.Position = UDim2.new(0, 10, 0, 50)
+ChatScroll.BackgroundTransparency = 1
+ChatScroll.Parent = ChatFrame
+Instance.new("UIListLayout", ChatScroll).VerticalAlignment = "Bottom"
+
+local ChatInput = Instance.new("TextBox")
+ChatInput.Size = UDim2.new(1, -20, 0, 35)
+ChatInput.Position = UDim2.new(0, 10, 1, -45)
+ChatInput.PlaceholderText = "Type message here..."
+ChatInput.Text = ""
+ChatInput.Parent = ChatFrame
+Instance.new("UICorner", ChatInput)
+
+local function addMsg(name, msg)
+    local msgL = Instance.new("TextLabel")
+    msgL.Size = UDim2.new(1, 0, 0, 20)
+    msgL.Text = "["..name.."]: "..msg
+    msgL.TextColor3 = Color3.fromRGB(100, 100, 100)
+    msgL.Font = "Gotham"
+    msgL.TextSize = 14
+    msgL.TextXAlignment = "Left"
+    msgL.BackgroundTransparency = 1
+    msgL.Parent = ChatScroll
+    ChatScroll.CanvasPosition = Vector2.new(0, ChatScroll.AbsoluteCanvasSize.Y)
+end
+
+ChatInput.FocusLost:Connect(function(enter)
+    if enter and ChatInput.Text ~= "" then
+        player:SetAttribute("DogChatMsg", ChatInput.Text)
+        ChatInput.Text = ""
+    end
+end)
+
+for _, p in pairs(Players:GetPlayers()) do
+    p:GetAttributeChangedSignal("DogChatMsg"):Connect(function()
+        addMsg(p.DisplayName, p:GetAttribute("DogChatMsg"))
+    end)
+end
+
+-- --- 4. Leaderboard System ---
+local RankScroll = Instance.new("ScrollingFrame")
+RankScroll.Size = UDim2.new(1, -20, 1, -60)
+RankScroll.Position = UDim2.new(0, 10, 0, 50)
+RankScroll.BackgroundTransparency = 1
+RankScroll.Parent = RankFrame
+Instance.new("UIListLayout", RankScroll).Padding = UDim.new(0, 8)
+
+local function updateRank()
+    for _, v in pairs(RankScroll:GetChildren()) do if v:IsA("Frame") then v:Destroy() end end
+    local users = {}
+    for _, p in pairs(Players:GetPlayers()) do
+        if p:GetAttribute("UsingDogScript") then
+            table.insert(users, {Name = p.DisplayName, Score = p:GetAttribute("DogClicks") or 0, Id = p.UserId})
+        end
+    end
+    table.sort(users, function(a, b) return a.Score > b.Score end)
+    for i, data in ipairs(users) do
+        if i > 10 then break end
+        local item = Instance.new("Frame")
+        item.Size = UDim2.new(1, -5, 0, 45)
+        item.BackgroundColor3 = Color3.fromRGB(252, 252, 252)
+        item.Parent = RankScroll
+        Instance.new("UICorner", item)
+        
+        local img = Instance.new("ImageLabel")
+        img.Size = UDim2.new(0, 35, 0, 35)
+        img.Position = UDim2.new(0, 5, 0.5, -17.5)
+        img.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..data.Id.."&width=420&height=420&format=png"
+        img.BackgroundTransparency = 1
+        img.Parent = item
+        Instance.new("UICorner", img).CornerRadius = UDim.new(1,0)
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, -50, 1, 0)
+        label.Position = UDim2.new(0, 45, 0, 0)
+        label.Text = i..". "..data.Name.." ("..data.Score..") 🐶"
+        label.TextColor3 = Color3.fromRGB(100, 100, 100)
+        label.TextXAlignment = "Left"
+        label.BackgroundTransparency = 1
+        label.Font = "GothamBold"
+        label.Parent = item
+    end
+end
+
+task.spawn(function()
+    while wait(2) do
+        if RankFrame.Visible then updateRank() end
+    end
+end)
+
+-- --- Navigation Logic ---
+local function closeAll()
+    MainFrame.Visible = false
+    RankFrame.Visible = false
+    ChatFrame.Visible = false
+    MusicFrame.Visible = false
+end
+
+ToggleBtn.MouseButton1Click:Connect(function() closeAll(); MainFrame.Visible = true end)
+RankBtn.MouseButton1Click:Connect(function() closeAll(); RankFrame.Visible = true; updateRank() end)
+ChatBtn.MouseButton1Click:Connect(function() closeAll(); ChatFrame.Visible = true end)
+MusicBtn.MouseButton1Click:Connect(function() closeAll(); MusicFrame.Visible = true end)
